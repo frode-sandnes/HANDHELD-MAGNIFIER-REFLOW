@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <title>Wildflower</title>
+
+    <!--------- Bootstrap Cdn ------->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!--------- Bootstrap Styling/Notification Cdn ------->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!------------ Font Awesome Icons ---------->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!------------ Bootstrap Icons ---------->
+    <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css'>
+    <!------------ CSS Styling ---------->
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+</head>
+<body>
+<div class="container-md">
+
+    <!------------------ uploading image ------------------>
+    <div id="processingStepID" hidden>
+        <h1>Processing image...please wait...</h1>
+        <img id="imageSrc" width="100%" class="img-fluid" />
+    </div>
+
+    <!------------------ error messages ------------------>
+    <div id="noTextAreaErrorID" hidden>
+        <h1 class="errorMessageHeading">Processing error</h1>
+        <p class="errorMessageText">Unable to detect a text area (max contour).</p>
+    </div>
+
+    <div id="noOpenCVErrorID" hidden>
+        <h1 class="errorMessageHeading">Library missing</h1>
+        <p class="errorMessageText">Unable to load OpenCV.</p>
+    </div>
+    
+    <!------------------ upload button ------------------>
+    <div id="uploadButtonID">
+        <div class="instructionsContainer">
+            <div class="instructions">
+                <i class="fa-solid fa-mobile-screen-button largeIcons"></i><br>
+                <span class="number">1</span> Photo of text
+            </div>
+            <div class="instructions">
+                <i class="fa-solid fa-arrows-up-down largeIcons"></i><br>
+                <span class="number">2</span> Pan up down to read
+            </div>
+            <div class="instructions">
+                <i class="fa-solid fa-rotate-right largeIcons"></i><br>
+               <span class="number">3</span> Turn to zoom
+            </div>
+            <div class="instructions">
+                <i class="fa-solid fa-arrows-up-down largeIcons"></i>
+                <i class="fa-solid fa-arrows-up-down largeIcons"></i><br>
+                <span class="number">4</span> Double slide for contrast
+            </div>
+            <div class="instructions">
+                <i class="fa-solid fa-arrow-left largeIcons"></i><br>
+                <span class="number">5</span> Double left to restart
+            </div>
+            <div class="instructions">
+                <i class="fa-solid fa-arrow-right largeIcons"></i><br>
+                <span class="number">6</span> Double right toggle negative
+            </div>            
+        </div>
+
+        <label for="fileInput" class="form-label md mx-auto shadow p-3 mb-4 rounded-4 fileButton">Select picture</label>
+        <input type="file" id="fileInput" name="file"
+                accept='image/*,.png,.jpg'
+                capture="environment">
+    </div>
+
+    <!----------------------- Result -------------------------->
+    <div class="image-viewer-container">
+        <div id="zoomButtons"></div>
+        <div id="result"></div>
+    </div>
+    <br>
+
+    <!--------------------- Hidden canvas for processing -------------------------->
+    <canvas id="pros-image" hidden></canvas>
+    <canvas id="canvasOutput" hidden></canvas>    <!-- used by the projection based word detection in frode.js -->
+    <!--------------------- Footer -------------------------->
+    <footer id="footerID">
+        <h5>Wildflower</h5>
+        <p>View (scanned) Image with magnification and reflow. Controlled with simple gestured requiring little visual attention.</p>
+
+        <p>Developed by Frode Eika Sandnes, Nechrvan Murad, Mohammad Khaled, and Fadl El Nassani, Oslo Metropolitan University.</p>
+        
+        <p>Version 0.3, August, 2023.</p>
+
+        <p>Please contribute with comments, suggestions and improvements.</p>
+
+    </footer>
+
+    <button id="refreshButtonID" class="form-label md mx-auto shadow p-3 mb-4 rounded-4 fileButton" onClick="window.location.reload();" hidden>Reflow again</button>
+</div>
+
+<!----------- Temporary zoom feedback  ----------->
+<div id="zoomInfoBox" class="infoBox" hidden>
+    <i class="fa fa-search-plus" aria-hidden="true"></i>
+    Zoom: <span id="zoomValue">100</span>%
+</div>
+<!----------- Temporary brightness feedback  ----------->
+<div id="contrastInfoBox" class="infoBox" hidden>
+    <i class="fa fa-adjust" aria-hidden="true"></i>
+    Contrast: <span id="contrastValue">100</span>%
+</div>
+
+<!----------- Original Image set in processing ----------->
+<img alt="original image" hidden="hidden" id="oIm" src=""/>
+<canvas id="snap-Image" hidden="hidden"></canvas>
+
+<!----------------- Scripts -------------------------->
+<script>
+    // used for checking successful loading of scripts
+    let opencvLoaded = false;
+    let frodeLoaded = false;
+</script>
+<script src="FileSaver.js" defer></script> <!-- saving images for debugging -->
+<script src="scripts.js" defer></script>
+<script src="opencv.js" type="text/javascript" defer onload="opencvLoaded=true;"></script>
+</body>
+</html>
