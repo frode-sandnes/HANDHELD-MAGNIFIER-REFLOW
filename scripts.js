@@ -297,7 +297,7 @@ async function transform(src)
             imRotation(cropImCol, medinaAngle);
             }
         saveIllustrativeImage(cropIm, 'pros-image',"blurred-and-rotated-transformed",false);        
-        extractAllWords(cropIm, blur_im, cropImCol)             // Call Opencv projection
+        extractAllWords(cropIm, blur_im, cropImCol);             // Call Opencv projection
         transformedIm.delete();
         colorImage.delete();
         cropIm.delete();
@@ -817,11 +817,6 @@ function findlinesAngle(im)
 // params are the grayscale image im, blurred image_im, and full colour image imCol
 function extractAllWords(im, blured_im, imCol) 
     {
-// vi er her - trenger et annet bilde å jobbe med        
-saveIllustrativeImage(im, 'pros-image',"im",false);  
-saveIllustrativeImage(blured_im, 'pros-image',"blured_im",false);  
-saveIllustrativeImage(imCol, 'pros-image',"imCol",false);  
-
     dump("ENTER-extractAllWords", false);
     FRODEtime("extractAllWords");  
     // pre Test to find out median width and height of characters in context
@@ -935,6 +930,15 @@ saveIllustrativeImage(imCol, 'pros-image',"imCol",false);
         }
     saveIllustrativeImage(lineIm2, 'pros-image',"line-bounding-boxes",false);             
     lineIm2.delete();
+    // Declare variables for splitting words. Find the median line height to represent the "typical".
+    let heights = rectArr.map(({height}) => height)
+                         .sort();
+    let medianHeight = heights[Math.round(heights.length/2)];
+    const cutHeightToWidthFactor = 8;      // the width of the cut points 
+    const maxWordWidth = medianHeight * cutHeightToWidthFactor;
+    let cutSegmentHalfwidth = 2*medianHeight;
+    let cutSegmentWidth = 2 * cutSegmentHalfwidth; 
+//let debug_case = 0;
     // Sort Line (rect) based on height 'Y'
     rectArr.sort((a, b) => a.y - b.y);
     for (let i = 0; i < rectArr.length; i++) 
@@ -992,8 +996,72 @@ saveIllustrativeImage(imCol, 'pros-image',"imCol",false);
                 let point2 = new cv.Point(rect.x + rect.width, rect.y + rect.height);
                 cv.rectangle(lineIm3, point1, point2, rectangleColor, 5, cv.LINE_AA, 0);
                 rectArrOrd.push(rect);
+                // FRODES SPLIT WORD         
+                if (rect.height < medianHeight * 4) // first check that it is not a huge illustration, but probably a text line
+                    {                   
+                    // traverse long words and split into segments
+                    let cutSegmentStart = maxWordWidth - cutSegmentHalfwidth;
+                    while (cutSegmentStart < rect.width - cutSegmentWidth)
+                        {
+//            console.log("start rect: "+(++debug_case));                        
+//            console.log(rect);                                 
+//            console.log("cutSegment start "+cutSegmentStart);                             
+                        // split up the word in smaller pieces
+                        // first try to get the vertical projections using opencv.js
+                        let cutSegment = { ...rect, x: cutSegmentStart, width: cutSegmentWidth};       // clone the rectangle, and alter properties
+                        let col_sum = new cv.Mat();
+                        let line = new cv.Mat();
+//    line = croped_rectIm.roi(rect);
+//    saveIllustrativeImage(line, 'debugCanvas',debug_case+"longword",true);             
+                    
+//    line = croped_rectIm.roi(cutSegment);
+//    saveIllustrativeImage(line, 'debugCanvas',debug_case+"split",true);    
+//    console.log(cutSegment);         
+                        line = croped_rectIm.roi(cutSegment);                        
+                        cv.reduce(line, col_sum, 0, cv.REDUCE_SUM, cv.CV_32F);
+    //console.log("col_sum: "+col_sum.data32F.length);
+//    console.log(col_sum.data32F);
+                        // find the smallest value in the projection, and use as cut point
+                        let projection = col_sum.data32F; 
+                        let minIndex = projection.reduce((index, value, i, array) =>
+                                                value < array[index] ? i : index, 0);
+//console.log("minindex "+minIndex +" with "+projection[minIndex]);;
+                        let cutPoint = cutSegmentStart + minIndex;
+//                    console.log("cut point "+cutPoint);
+                        // split up
+//                        let segmentWidth = medianHeight * cutHeightToWidthFactor;
+                        let rect1 = {x : rect.x, y : rect.y, width : cutPoint - rect.x - 1, height : rect.height};
+                        let rect2 = {x : cutPoint, y : rect.y, width : rect.width - rect1.width, height : rect.height};                       
+                        if (rect2.width > 0)    // dont insert empty end pieces
+                            {
+                            // replace the old rect with the two new ones to achieve split
+                            rectArrOrd.pop();   // remove old
+//                    console.log("   replaced rect 1:");                        
+//                    console.log(rect1);                        
+                            rectArrOrd.push(rect1);
+//                    console.log("   replaced rect 2:");                        
+//                    console.log(rect2);                        
+                            rectArrOrd.push(rect2);
+
+//    line = croped_rectIm.roi(rect1);
+//    saveIllustrativeImage(line, 'debugCanvas',debug_case+"del-1",true);             
+//    line = croped_rectIm.roi(rect2);
+//    saveIllustrativeImage(line, 'debugCanvas',debug_case+"del-2",true);             
+            
+                            }
+                        cutSegmentStart = cutPoint + maxWordWidth - cutSegmentHalfwidth; // update for next iteration 
+
+                        rect = rect2;       // continue analysing the second word, in case that needs to be split further
+//console.log("End case: "+cutSegmentStart+" < "+ rect.width);                        
+                        col_sum.delete();   // cleanup
+                        line.delete();
+                        }  
+console.log("exited long word loop");                          
+                    }                    
+                // END SPLIT WORD
                 }
             }
+
         // illustrate the middle line detected        
         if (i == Math.round(rectArr.length/2))
             {

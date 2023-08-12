@@ -41,9 +41,9 @@
     <!------------------ upload button ------------------>
     <div id="uploadButtonID">
         <div class="instructionsContainer">
-            <div class="instructions">
+            <div class="instructions" style="color: var(--highlight-color)">
                 <i class="fa-solid fa-mobile-screen-button largeIcons"></i><br>
-                <span class="number">1</span> Photo of text
+                <span class="number">1</span> Get photo of text
             </div>
             <div class="instructions">
                 <i class="fa-solid fa-arrows-up-down largeIcons"></i><br>
@@ -51,7 +51,7 @@
             </div>
             <div class="instructions">
                 <i class="fa-solid fa-rotate-right largeIcons"></i><br>
-               <span class="number">3</span> Turn to zoom
+               <span class="number">3</span> Turn with two fingers to zoom
             </div>
             <div class="instructions">
                 <i class="fa-solid fa-arrows-up-down largeIcons"></i>
@@ -68,7 +68,7 @@
             </div>            
         </div>
 
-        <label for="fileInput" class="form-label md mx-auto shadow p-3 mb-4 rounded-4 fileButton">Select picture</label>
+        <label for="fileInput" class="form-label md mx-auto shadow p-3 mb-4 rounded-4 fileButton">Select/take picture</label>
         <input type="file" id="fileInput" name="file"
                 accept='image/*,.png,.jpg'
                 capture="environment">
@@ -82,18 +82,21 @@
     <br>
 
     <!--------------------- Hidden canvas for processing -------------------------->
+    <canvas id="debugCanvas" hidden></canvas>
     <canvas id="pros-image" hidden></canvas>
     <canvas id="canvasOutput" hidden></canvas>    <!-- used by the projection based word detection in frode.js -->
     <!--------------------- Footer -------------------------->
     <footer id="footerID">
         <h5>Wildflower</h5>
-        <p>View (scanned) Image with magnification and reflow. Controlled with simple gestured requiring little visual attention.</p>
-
+        <p>View image of text with magnification, reflow, and up-down pan. 
+            The magnifier is controlled with simple gestured requiring little visual attention. 
+            Download this webpage for offline use. 
+            Please contribute with comments, suggestions and improvements.</p>
+  
         <p>Developed by Frode Eika Sandnes, Nechrvan Murad, Mohammad Khaled, and Fadl El Nassani, Oslo Metropolitan University.</p>
         
         <p>Version 0.3, August, 2023.</p>
 
-        <p>Please contribute with comments, suggestions and improvements.</p>
 
     </footer>
 

@@ -164,7 +164,8 @@ footer
     width: 10em;
     font-size: large;
     font-weight: bold;
-    color: var(--highlight-color);
+/*    color: var(--highlight-color);*/
+    color: var(--basic-color);
     padding: 2vh;
     text-align: center;
     line-height: 1.1;
